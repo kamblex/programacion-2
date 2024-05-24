@@ -1,0 +1,54 @@
+import numpy as np
+import matplotlib.pyplot as plt
+from fractions import Fraction
+from scipy.optimize import brentq
+
+class Polinomio:
+    def __init__(self, coeficientes):
+        self.coeficientes = [Fraction(c) for c in coeficientes]
+    
+    def evaluar(self, x):
+        return sum(coef * x**i for i, coef in enumerate(self.coeficientes))
+    
+    def derivada(self):
+        nuevos_coef = [i * self.coeficientes[i] for i in range(1, len(self.coeficientes))]
+        return Polinomio(nuevos_coef)
+
+class PolinomioRaices(Polinomio):
+    def __init__(self, coeficientes, epsilon=1e-5):
+        super().__init__(coeficientes)
+        self.epsilon = epsilon
+
+    def encontrar_raices(self):
+        derivada = self.derivada()
+        raices = []
+        for i in np.arange(-100, 100, self.epsilon):
+            try:
+                raiz = brentq(self.evaluar, i, i + self.epsilon)
+                if raiz not in raices:
+                    raices.append(raiz)
+            except ValueError:
+                continue
+        raices_reales = sorted([r for r in raices if abs(self.evaluar(r)) < self.epsilon])
+        return raices_reales
+
+    def visualizar(self):
+        x = np.linspace(-10, 10, 400)
+        y = [self.evaluar(xi) for xi in x]
+        plt.plot(x, y)
+        plt.axhline(0, color='red', linestyle='--')
+        plt.title("Visualización del Polinomio")
+        plt.xlabel("x")
+        plt.ylabel("P(x)")
+        plt.grid(True)
+        plt.show()
+
+coeficientes = ["1/1", "-6/1", "11/1", "-6/1"]
+polinomio = PolinomioRaices(coeficientes)
+
+print("Raíces del polinomio:")
+raices = polinomio.encontrar_raices()
+for r in raices:
+    print(float(r))
+
+polinomio.visualizar()
